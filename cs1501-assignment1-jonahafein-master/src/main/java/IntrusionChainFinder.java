@@ -19,6 +19,44 @@ public final class IntrusionChainFinder {
       int maxHops) {
 
     // TODO: implement recursive backtracking search using a helper recursive method
+
+    
+
+
     return new ArrayList<>();
   }
+
+    // need to implement all helper methods
+
+  // helper method to get priviledge level in ordernal manner
+  private static int priviledge_order(Priv p){
+    if(p == Priv.ADMIN){
+      return 2;
+    }
+    else if(p == Priv.USER){
+      return 1;
+    }
+    else{
+      return 0;
+    }
+  }
+
+  private static boolean sufficient_priviledge(Priv have, Priv need){
+    int have_numeric = priviledge_order(have);
+    int need_numeric = priviledge_order(need);
+    
+    // no priviledge needed case
+    if(need == null){
+      return true;
+    }
+
+    if(have_numeric >= need_numeric){
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+
+
 }
