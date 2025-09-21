@@ -103,12 +103,36 @@ public final class IntrusionChainFinder {
     // now looking at each outgoing route from the from 
     for(int i = 0; i<from.routes.size(); i++){
       Route r = from.routes.get(i);
+      // if we pick up a route with the wrong destination
+      if(!r.to.name.equals(to.name)){
+        System.out.println("Route" + i + "goes to wrong destination");
+        continue;
+      }
+      // now case for correct route going to correct destination
+      // check allowed services
+      if(r.allow == null || r.allow.size() == 0){
+        System.out.println("No allowed services for route" + i + "skipping");
+        continue;
+      }
 
-
+      // check each allowed service on the route
+      for(int j = 0; j < r.allow.size(); j++){
+        String allowed = r.allow.get(j);
+        if(allowed == null){
+          continue;
+        }
+        // find route that allows svc
+        if(allowed.equals(svc)){
+          return r; // return the route that we want
+        }
+      }
     }
 
-
+    // otherwise we can just return null
+    return null;
   }
+
+  
 
 
 }
