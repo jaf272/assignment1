@@ -59,6 +59,28 @@ public final class IntrusionChainFinder {
     }
   }
 
+  // method to see which priviledge is higher
+  private static Priv priviledge_max(Priv a, Priv b){
+    if(a == null){
+      return b;
+    }
+    if(b == null){
+      return a;
+    }
+
+    // get numeric values for priviledges
+    int a_number = priviledge_order(a);
+    int b_number = priviledge_order(b);
+
+    if(a_number >= b_number){
+      return a;
+    }
+    else{
+      return b;
+    }
+
+  }
+
   // method to see if attacker has credential in inventory
   private static boolean has_cred_with_tag(Set<String> inventory, String tag){
     // case where no tag is required
@@ -132,7 +154,17 @@ public final class IntrusionChainFinder {
     return null;
   }
 
-  
+  // now method to check that the preconditions hold for an exploit
+
+  private static boolean preconditions_hold(
+    Exploit ex, SystemInfo from, SystemInfo to, Set<String> inventory, Map<String, Priv> privMap,
+    Map<String, Integer> globalUseCount, Map<String, Set<String>> usedOncePerSystem){
+      // placeholder
+      return false;
+  }
+
+
+
 
 
 }
