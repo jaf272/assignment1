@@ -28,6 +28,15 @@ public final class IntrusionChainFinder {
 
     // need to implement all helper methods
 
+  // method to return true if the exploit is a local exploit
+  private static boolean isLocalExploit(Exploit ex){
+    if(ex == null || ex.requiredService == null){
+      return true;
+    }
+
+    return false;
+  }
+
   // helper method to get priviledge level in ordernal manner
   private static int priviledge_order(Priv p){
     if(p == Priv.ADMIN){
@@ -155,13 +164,48 @@ public final class IntrusionChainFinder {
   }
 
   // now method to check that the preconditions hold for an exploit
-
+  // TODO: implement later
   private static boolean preconditions_hold(
     Exploit ex, SystemInfo from, SystemInfo to, Set<String> inventory, Map<String, Priv> privMap,
     Map<String, Integer> globalUseCount, Map<String, Set<String>> usedOncePerSystem){
       // placeholder
       return false;
   }
+
+  // class and helper methods for remembering exploit application changes
+  private static class ChangeRecord{
+    Exploit exploit;
+    SystemInfo target;
+    Priv prevPriv;
+    Set<String> addedCreds;
+    int prevLimitedCount;
+    boolean limitedIncremented;
+    boolean onceAdded;
+
+    ChangeRecord(Exploit exploit, SystemInfo target){
+      this.exploit = exploit;
+      this.target = target;
+      this.addedCreds = new HashSet<>();
+      this.prevLimitedCount = 0;
+      this.limitedIncremented = false;
+      this.onceAdded = false;
+    }
+  }
+
+  // method to apply a local exploit's effects to the current system
+  // TODO: implement
+  private static ChangeRecord doLocalExploit(Exploit ex, SystemInfo current, Map<SystemInfo, Priv> privMap,
+  Set<String> inventory, Map<String, Integer> limitedCount, Map<String, Set<SystemInfo>> usedOncePerSys){
+    System.out.println("Implement this later");
+  }
+
+  // method to apply a lateral exploits effects (src to dst)
+  private static ChangeRecord doLateralExploit(Exploit ex, SystemInfo src, SystemInfo dst, Map<SystemInfo, Priv> privMap,
+  Set<String> inventory, Map<String, Integer> limitedCount, Map<String, Set<SystemInfo>> usedOncePerSys){
+    System.out.println("Implement this later");
+  }
+
+
 
 
 
