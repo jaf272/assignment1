@@ -33,7 +33,6 @@ public final class IntrusionChainFinder {
     if(ex == null || ex.requiredService == null){
       return true;
     }
-
     return false;
   }
 
@@ -193,10 +192,59 @@ public final class IntrusionChainFinder {
   }
 
   // method to apply a local exploit's effects to the current system
-  // TODO: implement
+  // TODO for later: implement
   private static ChangeRecord doLocalExploit(Exploit ex, SystemInfo current, Map<SystemInfo, Priv> privMap,
   Set<String> inventory, Map<String, Integer> limitedCount, Map<String, Set<SystemInfo>> usedOncePerSys){
-    System.out.println("Implement this later");
+    
+    // Record we will return
+    ChangeRecord rec = new ChangeRecord(ex, current);
+
+    // account for reusing
+    if(ex.reusePolicy != null){
+      if(ex.reusePolicy.kind == reusePolicy.kind.LIMITED){
+        int prev = limitedCount.getOrDefault(ex.name, 0);
+        rec.prevLimitedCount = prev;
+        limitedCount.put(ex.name, prev + 1);
+        rec.limitedIncremented = true;
+      }
+      else if(ex.reusePolicy.kind == reusePolicy.usedOncePerSys){
+        Set<SystemInfo> set = usedOncePerSys.get(ex.name);
+        if(set == null){
+          set = new HashSet<>();
+          usedOncePerSys.put(ex.name, set);
+        }
+        boolean added = set.add(current);
+        rec.onceAdded = added;
+      }
+      else{
+        System.out.println("Unlimited reuse - nothing to worry about here.");
+      }
+    }
+
+    // priviledge gain stuff
+    Priv oldPriv = privMap.getOrDefault(current, Priv.NONE);
+    // we want to remember the previous
+    rec.prevPriv = oldPriv;
+    if (ex.gainPrivOnTarget != null){
+      Priv newPriv = priviledge_max(oldPriv, ex.gainPrivOnTarget);
+      privMap.put(current, newPriv);
+    }
+
+    // make logic to copy system creds into inventory
+    if(ex.addCredsOnTarget == true){
+      if(current.creds != null){
+        for (String c: current.creds){
+          if(!inventory.ccontains(c)){
+            inventory.add(c);
+            rec.addedCreds.add(c);
+          }
+        }
+      }
+    }
+
+    return rec;
+
+
   }
 
   // method to apply a lateral exploits effects (src to dst)
@@ -204,8 +252,6 @@ public final class IntrusionChainFinder {
   Set<String> inventory, Map<String, Integer> limitedCount, Map<String, Set<SystemInfo>> usedOncePerSys){
     System.out.println("Implement this later");
   }
-
-
 
 
 
