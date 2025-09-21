@@ -28,6 +28,49 @@ public final class IntrusionChainFinder {
 
     // need to implement all helper methods
 
+  // this will be key for our recursion
+  // undo changes recorded in a ChangeRecord 
+  private static void undoChanges(ChangeRecord rec, Map<SystemInfo, Priv> privMap, Set<String> inventory,
+  Map<String, Integer> limitedCount, Map<String, Set<SystemInfo>> usedOncePerSys){
+    if(rec == null){
+      return; // there are no changes to undo in this case
+    }
+
+    // remove the creds we added
+    if(rec.addedCreds != null && !rec.addedCreds.isEmpty()){
+      for(String c: rec.addedCreds){
+        inventory.remove(c);
+      }
+    }
+
+    // now we need to restore the previous priviledges
+    if(rec.target != null){
+      privMap.put(rec.target, rec.prevPriv);
+      System.out.println("We now have" + rec.prevPriv + "restored for" + rec.target.name);
+    }
+
+    // need to revert the count if we incremented it
+    if(rec.limitedIncremented == true){
+      if(rec.prevLimitedCount == 0){
+        limitedCount.remove(rec.exploit.name);
+      }
+      else{
+        limitedCount.put(rec.exploit.name, rec.prevLimitedCount);
+      }
+    }
+
+    // need to revert the once per system 
+    if(rec.onceAdded == true){
+      Set<SystemInfo> set = usedOncePerSys.get(rec.exploit.name);
+      if(set != null){
+        set.remove(rec.target);
+        if(set.isEmpty()){
+          usedOncePerSys.remove(rec.exploit.name);
+        }
+      }
+    }
+  }
+
   // method to return true if the exploit is a local exploit
   private static boolean isLocalExploit(Exploit ex){
     if(ex == null || ex.requiredService == null){
