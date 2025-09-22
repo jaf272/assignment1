@@ -293,10 +293,50 @@ public final class IntrusionChainFinder {
   // method to apply a lateral exploits effects (src to dst)
   private static ChangeRecord doLateralExploit(Exploit ex, SystemInfo src, SystemInfo dst, Map<SystemInfo, Priv> privMap,
   Set<String> inventory, Map<String, Integer> limitedCount, Map<String, Set<SystemInfo>> usedOncePerSys){
-    System.out.println("Implement this later");
+    // creating the record to return
+    ChangeRecord rec = new ChangeRecord(ex, dst);
+
+    // account for the reuse
+    if(ex.reusePolicy != null){
+      if(ex.reusePolicy.kind == reusePolicy.kind.LIMITED){
+        int prev = limitedCount.getOrDefault(ex.name, 0);
+        rec.prevLimitedCount = prev;
+        limitedCount.put(ex.name, prev + 1);
+        rec.limitedIncremented = true;
+      }
+      else if(ex.reusePolicy.kind == reusePolicy.kind.usedOncePerSys){
+        Set<SystemInfo> set = usedOncePerSys.get(ex.name);
+        if(set == null){
+          set = new Hashset<>();
+          usedOncePerSys.put(ex.name, set);
+        }
+        boolean added = set.add(dst);
+        rec.onceAdded = added;
+      }
+    }
+
+    // priviledge gain after the move
+    Priv oldPriv = privMap.getOrDefault(dst, Priv.NONE);
+    rec.prevPriv = oldPriv;
+    if(ex.gainPrivOnTarget != null){
+      Priv newPriv = priviledge_max(oldPriv, ex.gainPrivOnTarget);
+      privMap.put(dst, newPriv);
+    }
+
+    // 
+    if(ex.addCredsOnTarget){
+      if(dst.creds != null){
+        for(String c: dst.creds){
+          if(!inventory.contains(c)){
+            inventory.add(c);
+            rec.addedCreds.add(c);
+          }
+        }
+      }
+      return rec;
+    }
+
   }
-
-
 
 
 
