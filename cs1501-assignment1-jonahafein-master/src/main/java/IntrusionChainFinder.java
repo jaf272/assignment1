@@ -211,7 +211,30 @@ public final class IntrusionChainFinder {
     Exploit ex, SystemInfo from, SystemInfo to, Set<String> inventory, Map<String, Priv> privMap,
     Map<String, Integer> globalUseCount, Map<String, Set<String>> usedOncePerSystem){
       // placeholder
-      return false;
+      // implementation
+      if(ex == null){
+        return false;
+      }
+
+      boolean isLocal;
+
+      // figure out if local or lateral
+      if(ex.requiredService == null){
+        isLocal = true;
+      }
+      else{
+        isLocal = false;
+      }
+
+      // local has to be applied to the same system
+      if(isLocal == true && !from.name.equals(to.name)){
+        return false;
+      }
+
+      // lateral needs to have reequired service
+      if(!isLocal && ex.requiredService == null){
+        return false;
+      }
   }
 
   // class and helper methods for remembering exploit application changes
