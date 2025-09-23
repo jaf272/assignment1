@@ -76,7 +76,7 @@ public final class IntrusionChainFinder {
     // do the search
     dfs(start, exploitsSorted, privMap, inventory, limitedCount, usedOncePerSys, visited, path, solutions, target, maxHops);
     // sort solutions
-    solutions.sort(Comparator.comparing((List<Hop> c) -> keyForChain(c)).thenComparingInt(List::size);
+    solutions.sort(Comparator.comparing((List<Hop> c) -> keyForChain(c)).thenComparingInt(List::size));
 
     return solutions;
   }
