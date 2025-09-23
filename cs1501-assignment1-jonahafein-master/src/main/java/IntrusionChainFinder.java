@@ -235,6 +235,53 @@ public final class IntrusionChainFinder {
       if(!isLocal && ex.requiredService == null){
         return false;
       }
+
+      // priv on source
+      Priv have = privMap.getorDefault(from, Priv.NONE);
+      if(!sufficient_priviledge(have, ex.requiredPrivOnSource)){
+        return false;
+      }
+
+      // cred tag requirement
+      if(!has_cred_with_tag(inventory, ex.requiredCredTag)){
+        System.out.println("missing required cred tag");
+        return false;
+      }
+
+      // lateral specific checks
+      if(!isLocal){
+        Route r = find_route_allowing(from, to, ex.requiredService);
+        if(r == null){
+          return false;
+        }
+      }
+
+      // reuse policy
+      if(ex.reusePolicy != null){
+        if(ex.reusePolicy.kind == reusePolicy.kind.LIMITED){
+          int used = globalUseCount.getOrDefault(ex.name, 0);
+          if(used >= ex.reusePolicy.limit){
+            return false;
+          }
+        }
+        else if(ex.reusePolicy.kind == reusePolicy.kind.usedOncePerSys){
+          Set<SystemInfo> usedOn = usedOncePerSystem.getOrDefault(ex.name, Collections.emptySet());
+          SystemInfo scope;
+          if(isLocal){
+            scope = from;
+          }
+          else{
+            scope = to;
+          }
+          if(usedOn.contains(scope)){
+            return false;
+          }
+        }
+      }
+
+      return true;
+      
+      
   }
 
   // class and helper methods for remembering exploit application changes
