@@ -123,6 +123,106 @@ public final class IntrusionChainFinder {
   Set<String> inventory, Map<String, Integer> limitedCount, Map<String, Set<SystemInfo>> usedOncePerSys,
   Set<SystemInfo> visited, List<Hop> path, List<List<Hop>> solutions, SystemInfo target, int maxHops){
     // TODO implement
+
+
+    // base case
+    if(current == target){
+      solutions.add(new ArrayList<>(path));
+      return;
+    }
+
+    // recursive case
+    // try each edxploit
+    for(Exploit ex: exploitsSorted){
+      boolean isLocal = (ex.requiredService == null);
+      if(isLocal == true){
+        if(path.size() + 1 > maxHops){
+          // can't keep adding here
+          continue;
+        }
+        boolean conds_hold = preconditions_hold(ex, current, current, inventory, privMap, limitedCount, usedOncePerSys);
+        if(!conds_hold){
+          continue; // we continue on if our preconditions do not hold
+        }
+        // apply local ex
+        ChangeRecord rec = doLocalExploit(ex, current, privMap, inventory, limitedCount, usedOncePerSys);
+        // hop
+        Hop hop = makeHop(current, current, ex);
+        path.add(hop);
+
+        if(current == target){
+          solutions.add(new ArrayList<>(path));
+          path.remove(path.size() -1);
+          undoChanges(rec, privMap, inventory, limitedCount, usedOncePerSys);
+          return;
+        }
+
+        // recurse
+        dfs(current, exploitsSorted, privMap, inventory, limitedCount, usedOncePerSys, visited, path,
+        solutions, target, maxHops);
+
+        // remove hop and undo changes
+        path.remove(path.size() - 1);
+        undoChanges(rec, privMap, inventory, limitedCount, usedOncePerSys);
+        // next ex
+        continue;
+      }
+
+      if(current.routes != null){
+        for(Route r: current.routes){
+          if(r == null || r.to == null){
+            continue;
+          }
+          SystemInfo dst = r.to;
+
+          if(path.size()+ 1 > maxHops){
+            continue;
+          }
+
+          // dont revisitr
+          if(visited.contains(dst)){
+            continue;
+          }
+
+          // preconditions for lateral
+          boolean preconds_hold = preconditions_hold(ex, current, dst, inventory, privMap, limitedCount, usedOncePerSys);
+          if(!preconds_hold){
+            continue;
+          }
+
+          // apply lateral exploit
+          ChangeRecord rec = doLateralExploit(ex, current, dst, privMap, inventory, limitedCount, usedOncePerSys);
+          //add Hop
+          Hop hop = makeHop(current, dst, ex);
+          path.add(hop);
+
+
+          // reached target check
+          if(dst == target){
+            solutions.add(new ArrayList<>(path));
+            path.remove(path.size() - 1);
+            undoChanges(rec, privMap, inventory, limitedCount, usedOncePerSys);
+            // dont recurse past target
+            continue;
+          }
+
+          // o.w. recurse from dst
+          visited.add(dst);
+          dfs(dst, exploitsSorted, privMap, inventory, limitedCount, usedOncePerSys, visited,
+          path, solutions, target, maxHops);
+          visited.remove(dst);
+
+
+          // backtrack
+          path.remove(path.size() -1);
+          undoChanges(rec, privMap, inventory, limitedCount, usedOncePerSys);
+
+        }
+      }
+
+    }
+
+
   }
 
   // create hop object
