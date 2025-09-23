@@ -507,13 +507,13 @@ public final class IntrusionChainFinder {
 
       // reuse policy
       if(ex.reusePolicy != null){
-        if(ex.reusePolicy.Kind == reusePolicy.Kind.LIMITED){
+        if(ex.reusePolicy.kind == reusePolicy.Kind.LIMITED){
           int used = globalUseCount.getOrDefault(ex.name, 0);
           if(used >= ex.reusePolicy.limit){
             return false;
           }
         }
-        else if(ex.reusePolicy.Kind == reusePolicy.Kind.usedOncePerSys){
+        else if(ex.reusePolicy.kind == reusePolicy.Kind.usedOncePerSys){
           Set<SystemInfo> usedOn = usedOncePerSystem.getOrDefault(ex.name, Collections.<SystemInfo>emptySet());
           SystemInfo scope;
           if(isLocal){
@@ -563,13 +563,13 @@ public final class IntrusionChainFinder {
 
     // account for reusing
     if(ex.reusePolicy != null){
-      if(ex.reusePolicy.Kind == reusePolicy.Kind.LIMITED){
+      if(ex.reusePolicy.kind == reusePolicy.Kind.LIMITED){
         int prev = limitedCount.getOrDefault(ex.name, 0);
         rec.prevLimitedCount = prev;
         limitedCount.put(ex.name, prev + 1);
         rec.limitedIncremented = true;
       }
-      else if(ex.reusePolicy.Kind == reusePolicy.usedOncePerSys){
+      else if(ex.reusePolicy.kind == reusePolicy.usedOncePerSys){
         Set<SystemInfo> set = usedOncePerSys.get(ex.name);
         if(set == null){
           set = new HashSet<>();
@@ -617,13 +617,13 @@ public final class IntrusionChainFinder {
 
     // account for the reuse
     if(ex.reusePolicy != null){
-      if(ex.reusePolicy.Kind == reusePolicy.Kind.LIMITED){
+      if(ex.reusePolicy.kind == reusePolicy.Kind.LIMITED){
         int prev = limitedCount.getOrDefault(ex.name, 0);
         rec.prevLimitedCount = prev;
         limitedCount.put(ex.name, prev + 1);
         rec.limitedIncremented = true;
       }
-      else if(ex.reusePolicy.Kind == reusePolicy.Kind.ONCE_PER_SYSTEM){
+      else if(ex.reusePolicy.kind == reusePolicy.Kind.ONCE_PER_SYSTEM){
         Set<SystemInfo> set = usedOncePerSys.get(ex.name);
         if(set == null){
           set = new HashSet<>();
