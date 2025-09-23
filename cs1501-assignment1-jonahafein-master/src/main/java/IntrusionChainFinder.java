@@ -28,6 +28,7 @@ public final class IntrusionChainFinder {
 
     // need to implement all helper methods
 
+
   // this will be key for our recursion
   // undo changes recorded in a ChangeRecord 
   private static void undoChanges(ChangeRecord rec, Map<SystemInfo, Priv> privMap, Set<String> inventory,
@@ -69,6 +70,99 @@ public final class IntrusionChainFinder {
         }
       }
     }
+  }
+
+  // *** make sure to add check to stop early if we'd exceed the max hops ** 
+
+  private static void tryLateralThenRecurse(Exploit ex, List<Exploit> exploitsSorted, SystemInfo src, SystemInfo dst, ScenarioFactory.scenario scenario,
+  List<Hop> path, List<List<Hop>> solutions, Map<SystemInfo, Priv> privMap, Set<String> inventory, 
+  Map<String, Integer> limitedCount, Map<String, Set<SystemInfo>> usedOncePerSys, Set<SystemInfo> visited, 
+  SystemInfo target, int maxHops){
+    
+    // can't have too many hops
+    if(path.size() + 1 > maxHops){
+      return;
+    }
+
+    // apply the exploit + record the hop on the path
+    ChangeRecord rec = doLateralExploit(ex, src, dst, privMap, inventory, limitedCount, usedOncePerSys);
+    Hop hop = makeHop(src, dst, ex);
+    path.add(hop);
+
+    // stop when target reached
+    if(dst == target){
+      List<Hop> solution = new ArrayList<>(path);
+      // save solution
+      solutions.add(solution);
+      path.remove(path.size() - 1); // don't recvurse further (and below part of that idea too)
+      undoChanges(rec, privMap, inventory, limitedCount, usedOncePerSys);
+      return;
+    }
+
+    // o.w. recurse
+    if(visited.contains(dst)){
+      path.remove(path.size() - 1);
+      undoChanges(rec, privMap, inventory, limitedCount, usedOncePerSys);
+      return;
+
+    }
+
+    visited.add(dst);
+
+    dfs(dst, exploitsSorted, privMap, inventory, limitedCount, usedOncePerSys, visited, path, solutions, 
+    target, maxHops);
+    visited.remove(dst);
+
+    path.remove(path.size() - 1);
+    undoChanges(rec, privMap, inventory, limitedCount, usedOncePerSys);
+
+
+  }
+
+  private static void dfs(SystemInfo current, List<Exploit> exploitsSorted, Map<SystemInfo, Priv> privMap,
+  Set<String> inventory, Map<String, Integer> limitedCount, Map<String, Set<SystemInfo>> usedOncePerSys,
+  Set<SystemInfo> visited, List<Hop> path, List<List<Hop>> solutions, SystemInfo target, int maxHops){
+    // TODO implement
+  }
+
+  // create hop object
+  private static Hop makeHop(SystemInfo from, SystemInfo to, exploit ex){
+    
+    // get from and to names as well as exploit name
+    String fromName;
+    String toName;
+    String exName;
+    if(from == null){
+      fromName = "null";
+    }
+    else{
+      fromName = from.name;
+    }
+
+    if(to == null){
+      toName = "null";
+    }
+    else{
+      toName = to.name;
+    }
+
+    if(ex == null){
+      exName = "null";
+    }
+    else{
+      exName = ex.name;
+    }
+
+    String service = "LOCAL"; // default
+    if(ex != null && ex.requiredService != null){
+      service = ex.requiredService;
+    }
+
+    return new Hop(fromName, toName, exName, service);
+
+
+
+
   }
 
   // method to return true if the exploit is a local exploit
