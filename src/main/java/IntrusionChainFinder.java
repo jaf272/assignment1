@@ -189,7 +189,7 @@ public final class IntrusionChainFinder {
     // recursive case
     // try each edxploit
     for(Exploit ex: exploitsSorted){
-      boolean isLocal = (ex.requiredService == null);
+      boolean isLocal = (ex.requiredService == null || ex.requiredService.isEmpty());
       if(isLocal == true){
         if(path.size() + 1 > maxHops){
           // can't keep adding here
@@ -321,7 +321,7 @@ public final class IntrusionChainFinder {
   }
 
   // method to return true if the exploit is a local exploit
-  private static boolean isLocalExploit(Exploit ex){
+  private static boolean isLocal(Exploit ex){
     if(ex == null || ex.requiredService == null){
       return true;
     }
@@ -506,14 +506,14 @@ public final class IntrusionChainFinder {
       }
 
       // reuse policy
-      if(ex.ReusePolicy != null){
-        if(ex.ReusePolicy.kind == ReusePolicy.Kind.LIMITED){
+      if(ex.reusePolicy != null){
+        if(ex.reusePolicy.kind == ReusePolicy.Kind.LIMITED){
           int used = globalUseCount.getOrDefault(ex.name, 0);
-          if(used >= ex.ReusePolicy.limit){
+          if(used >= ex.reusePolicy.limit){
             return false;
           }
         }
-        else if(ex.ReusePolicy.kind == ReusePolicy.Kind.usedOncePerSys){
+        else if(ex.reusePolicy.kind == ReusePolicy.Kind.usedOncePerSys){
           Set<SystemInfo> usedOn = usedOncePerSystem.getOrDefault(ex.name, Collections.<SystemInfo>emptySet());
           SystemInfo scope;
           if(isLocal){
@@ -562,14 +562,14 @@ public final class IntrusionChainFinder {
     ChangeRecord rec = new ChangeRecord(ex, current);
 
     // account for reusing
-    if(ex.ReusePolicy != null){
-      if(ex.ReusePolicy.kind == ReusePolicy.Kind.LIMITED){
+    if(ex.reusePolicy != null){
+      if(ex.reusePolicy.kind == ReusePolicy.Kind.LIMITED){
         int prev = limitedCount.getOrDefault(ex.name, 0);
         rec.prevLimitedCount = prev;
         limitedCount.put(ex.name, prev + 1);
         rec.limitedIncremented = true;
       }
-      else if(ex.ReusePolicy.kind == ReusePolicy.usedOncePerSys){
+      else if(ex.reusePolicy.kind == ReusePolicy.usedOncePerSys){
         Set<SystemInfo> set = usedOncePerSys.get(ex.name);
         if(set == null){
           set = new HashSet<>();
@@ -616,14 +616,14 @@ public final class IntrusionChainFinder {
     ChangeRecord rec = new ChangeRecord(ex, dst);
 
     // account for the reuse
-    if(ex.ReusePolicy != null){
-      if(ex.ReusePolicy.kind == ReusePolicy.Kind.LIMITED){
+    if(ex.reusePolicy != null){
+      if(ex.reusePolicy.kind == ReusePolicy.Kind.LIMITED){
         int prev = limitedCount.getOrDefault(ex.name, 0);
         rec.prevLimitedCount = prev;
         limitedCount.put(ex.name, prev + 1);
         rec.limitedIncremented = true;
       }
-      else if(ex.ReusePolicy.kind == ReusePolicy.Kind.ONCE_PER_SYSTEM){
+      else if(ex.reusePolicy.kind == ReusePolicy.Kind.ONCE_PER_SYSTEM){
         Set<SystemInfo> set = usedOncePerSys.get(ex.name);
         if(set == null){
           set = new HashSet<>();
