@@ -67,7 +67,7 @@ public final class IntrusionChainFinder {
 
     // path & solutions containers
     List<Hop> path = new ArrayList<>();
-    List<List<Hop>> solutions = new ArrayList();
+    List<List<Hop>> solutions = new ArrayList<>();
 
     // exploit order
     List<Exploit> exploitsSorted = new ArrayList<>(scenario.exploits);
@@ -457,8 +457,8 @@ public final class IntrusionChainFinder {
   // now method to check that the preconditions hold for an exploit
   // TODO: implement later
   private static boolean preconditions_hold(
-    Exploit ex, SystemInfo from, SystemInfo to, Set<String> inventory, Map<String, Priv> privMap,
-    Map<String, Integer> globalUseCount, Map<String, Set<String>> usedOncePerSystem){
+    Exploit ex, SystemInfo from, SystemInfo to, Set<String> inventory, Map<SystemInfo, Priv> privMap,
+    Map<String, Integer> globalUseCount, Map<String, Set<SystemInfo>> usedOncePerSystem){
       // placeholder
       // implementation
       if(ex == null){
@@ -486,7 +486,7 @@ public final class IntrusionChainFinder {
       }
 
       // priv on source
-      Priv have = privMap.getorDefault(from, Priv.NONE);
+      Priv have = privMap.getOrDefault(from, Priv.NONE);
       if(!sufficient_priviledge(have, ex.requiredPrivOnSource)){
         return false;
       }
@@ -514,7 +514,7 @@ public final class IntrusionChainFinder {
           }
         }
         else if(ex.reusePolicy.kind == reusePolicy.kind.usedOncePerSys){
-          Set<SystemInfo> usedOn = usedOncePerSystem.getOrDefault(ex.name, Collections.emptySet());
+          Set<SystemInfo> usedOn = usedOncePerSystem.getOrDefault(ex.name, Collections.<SystemInfo>emptySet());
           SystemInfo scope;
           if(isLocal){
             scope = from;
@@ -596,7 +596,7 @@ public final class IntrusionChainFinder {
     if(ex.addCredsOnTarget == true){
       if(current.creds != null){
         for (String c: current.creds){
-          if(!inventory.ccontains(c)){
+          if(!inventory.doLateralExploitcontains(c)){
             inventory.add(c);
             rec.addedCreds.add(c);
           }
@@ -623,7 +623,7 @@ public final class IntrusionChainFinder {
         limitedCount.put(ex.name, prev + 1);
         rec.limitedIncremented = true;
       }
-      else if(ex.reusePolicy.kind == reusePolicy.kind.usedOncePerSys){
+      else if(ex.reusePolicy.kind == reusePolicy.kind.ONCE_PER_SYSTEM){
         Set<SystemInfo> set = usedOncePerSys.get(ex.name);
         if(set == null){
           set = new HashSet<>();
@@ -652,8 +652,10 @@ public final class IntrusionChainFinder {
           }
         }
       }
-      return rec;
+      
     }
+    
+    return rec;
 
   }
 
