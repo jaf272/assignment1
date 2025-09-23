@@ -506,14 +506,14 @@ public final class IntrusionChainFinder {
       }
 
       // reuse policy
-      if(ex.reusePolicy != null){
-        if(ex.reusePolicy.kind == reusePolicy.Kind.LIMITED){
+      if(ex.ReusePolicy != null){
+        if(ex.ReusePolicy.kind == ReusePolicy.Kind.LIMITED){
           int used = globalUseCount.getOrDefault(ex.name, 0);
-          if(used >= ex.reusePolicy.limit){
+          if(used >= ex.ReusePolicy.limit){
             return false;
           }
         }
-        else if(ex.reusePolicy.kind == reusePolicy.Kind.usedOncePerSys){
+        else if(ex.ReusePolicy.kind == ReusePolicy.Kind.usedOncePerSys){
           Set<SystemInfo> usedOn = usedOncePerSystem.getOrDefault(ex.name, Collections.<SystemInfo>emptySet());
           SystemInfo scope;
           if(isLocal){
@@ -562,14 +562,14 @@ public final class IntrusionChainFinder {
     ChangeRecord rec = new ChangeRecord(ex, current);
 
     // account for reusing
-    if(ex.reusePolicy != null){
-      if(ex.reusePolicy.kind == reusePolicy.Kind.LIMITED){
+    if(ex.ReusePolicy != null){
+      if(ex.ReusePolicy.kind == ReusePolicy.Kind.LIMITED){
         int prev = limitedCount.getOrDefault(ex.name, 0);
         rec.prevLimitedCount = prev;
         limitedCount.put(ex.name, prev + 1);
         rec.limitedIncremented = true;
       }
-      else if(ex.reusePolicy.kind == reusePolicy.usedOncePerSys){
+      else if(ex.ReusePolicy.kind == ReusePolicy.usedOncePerSys){
         Set<SystemInfo> set = usedOncePerSys.get(ex.name);
         if(set == null){
           set = new HashSet<>();
@@ -596,7 +596,7 @@ public final class IntrusionChainFinder {
     if(ex.addCredsOnTarget == true){
       if(current.creds != null){
         for (String c: current.creds){
-          if(!inventory.doLateralExploitcontains(c)){
+          if(!inventory.contains(c)){
             inventory.add(c);
             rec.addedCreds.add(c);
           }
@@ -616,14 +616,14 @@ public final class IntrusionChainFinder {
     ChangeRecord rec = new ChangeRecord(ex, dst);
 
     // account for the reuse
-    if(ex.reusePolicy != null){
-      if(ex.reusePolicy.kind == reusePolicy.Kind.LIMITED){
+    if(ex.ReusePolicy != null){
+      if(ex.ReusePolicy.kind == ReusePolicy.Kind.LIMITED){
         int prev = limitedCount.getOrDefault(ex.name, 0);
         rec.prevLimitedCount = prev;
         limitedCount.put(ex.name, prev + 1);
         rec.limitedIncremented = true;
       }
-      else if(ex.reusePolicy.kind == reusePolicy.Kind.ONCE_PER_SYSTEM){
+      else if(ex.ReusePolicy.kind == ReusePolicy.Kind.ONCE_PER_SYSTEM){
         Set<SystemInfo> set = usedOncePerSys.get(ex.name);
         if(set == null){
           set = new HashSet<>();
