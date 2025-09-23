@@ -12,6 +12,33 @@ public final class IntrusionChainFinder {
    * @param maxHops  maximum number of hops allowed in a chain
    * @return a list of valid chains (each chain is a list of Hop objects)
    */
+
+   // building a sort key for a chain
+   private static String keyForChain(List<Hop> chain){
+    if(chain == null){
+      return "";
+    }
+
+    StringBuilder sb = new StringBuilder();
+    for(Hop h: chain){
+      if(h == null){
+        continue;
+      }
+
+      // append fields
+      sb.append(h.from);
+      sb.append("|");
+      sb.append(h.viaService);
+      sb.append("|");
+      sb.append(h.viaExploit);
+      sb.append("|");
+      sb.append(h.to);
+      sb.append("->");
+    }
+
+    return sb.toString();
+   }
+
   public static List<List<Hop>> findChains(
       ScenarioFactory.Scenario scenario,
       SystemInfo start,
@@ -20,10 +47,38 @@ public final class IntrusionChainFinder {
 
     // TODO: implement recursive backtracking search using a helper recursive method
 
+    // prep mutable searchn state
+    Map<SystemInfo, Priv> privMap = new HashMap<>();
+    for(SystemInfo s: scenario.systems){
+      privMap.put(s, s.priv);
+    }
     
+    // inventory
+    Set<String> inventory = new Hashset<>();
+    //
 
+    // reuse tracking
+    Map<String, Integer> limitedCount = new HashMap<>();
+    Map<String, Set<SystemInfo>> usedOncePerSys = new HashMap<>();
 
-    return new ArrayList<>();
+    //avoid revisits
+    Set<SystemInfo> visited = new Hashset<>();
+    visited.add(start);
+
+    // path & solutions containers
+    List<Hop> path = new ArrayList<>();
+    List<List<Hop>> solutions = new ArrayList();
+
+    // exploit order
+    List<Exploit> exploitsSorted = new ArrayList<>(scenario.exploits);
+    exploitsSorted.sort(Comparator.comparing(e -> e.name));
+
+    // do the search
+    dfs(start, exploitsSorted, privMap, inventory, limitedCount, usedOncePerSys, visited, path, solutions, target, maxHops);
+    // sort solutions
+    solutions.sort(Comparator.comparing((List<Hop> c) -> keyForChain(c)).thenComparingInt(List::size);
+
+    return solutions;
   }
 
     // need to implement all helper methods
