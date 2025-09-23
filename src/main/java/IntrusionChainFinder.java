@@ -513,7 +513,7 @@ public final class IntrusionChainFinder {
             return false;
           }
         }
-        else if(ex.reusePolicy.kind == ReusePolicy.Kind.usedOncePerSys){
+        else if(ex.reusePolicy.kind == ReusePolicy.Kind.ONCE_PER_SYSTEM){
           Set<SystemInfo> usedOn = usedOncePerSystem.getOrDefault(ex.name, Collections.<SystemInfo>emptySet());
           SystemInfo scope;
           if(isLocal){
@@ -569,7 +569,7 @@ public final class IntrusionChainFinder {
         limitedCount.put(ex.name, prev + 1);
         rec.limitedIncremented = true;
       }
-      else if(ex.reusePolicy.kind == ReusePolicy.usedOncePerSys){
+      else if(ex.reusePolicy.kind == ReusePolicy.Kind.ONCE_PER_SYSTEM){
         Set<SystemInfo> set = usedOncePerSys.get(ex.name);
         if(set == null){
           set = new HashSet<>();
