@@ -102,7 +102,7 @@ public final class IntrusionChainFinder {
     // now we need to restore the previous priviledges
     if(rec.target != null){
       privMap.put(rec.target, rec.prevPriv);
-      System.out.println("We now have" + rec.prevPriv + "restored for" + rec.target.name);
+      //System.out.println("We now have" + rec.prevPriv + "restored for" + rec.target.name);
     }
 
     // need to revert the count if we incremented it
@@ -309,7 +309,7 @@ public final class IntrusionChainFinder {
     }
 
     String service = "LOCAL"; // default
-    if(ex != null && ex.requiredService != null){
+    if(ex != null && ex.requiredService != null && !ex.requiredService.isEmpty()){
       service = ex.requiredService;
     }
 
@@ -321,12 +321,12 @@ public final class IntrusionChainFinder {
   }
 
   // method to return true if the exploit is a local exploit
-  private static boolean isLocal(Exploit ex){
-    if(ex == null || ex.requiredService == null){
-      return true;
-    }
-    return false;
-  }
+  // private static boolean isLocal(Exploit ex){
+  //   if(ex == null || ex.requiredService == null){
+  //     return true;
+  //   }
+  //   return false;
+  // }
 
   // helper method to get priviledge level in ordernal manner
   private static int priviledge_order(Priv p){
@@ -408,49 +408,18 @@ public final class IntrusionChainFinder {
 
   // find a route from and to that allows the svc service
   private static Route find_route_allowing(SystemInfo from, SystemInfo to, String svc){
-
-    // if info missing we can't find a route
-    if(from == null || to == null || svc == null){
-      System.out.println("Missing a value cannot find a route");
+    // simpler version than I had before
+    if(from.isEmpty() || from == null || to.isEmpty() || to == null || svc.isEmpty() || svc == null){
       return null;
     }
-
-    // if no routes defined from from, return null
-    if(from.routes == null || from.routes.size() == 0){
-      System.out.println("No outgoing routes from" + from.name);
-      return null;
-    }
-
-
-    // now looking at each outgoing route from the from 
-    for(int i = 0; i<from.routes.size(); i++){
-      Route r = from.routes.get(i);
-      // if we pick up a route with the wrong destination
-      if(!r.to.name.equals(to.name)){
-        System.out.println("Route" + i + "goes to wrong destination");
+    for(Route r: from.routes){
+      if(r == null || r.to == null || r.allow == null){
         continue;
       }
-      // now case for correct route going to correct destination
-      // check allowed services
-      if(r.allow == null || r.allow.size() == 0){
-        System.out.println("No allowed services for route" + i + "skipping");
-        continue;
-      }
-
-      // check each allowed service on the route
-      for(int j = 0; j < r.allow.size(); j++){
-        String allowed = r.allow.get(j);
-        if(allowed == null){
-          continue;
-        }
-        // find route that allows svc
-        if(allowed.equals(svc)){
-          return r; // return the route that we want
-        }
+      if(r.to.name.equals(to.name) && r.allow.contains(svc)){
+        return r;
       }
     }
-
-    // otherwise we can just return null
     return null;
   }
 
@@ -468,7 +437,7 @@ public final class IntrusionChainFinder {
       boolean isLocal;
 
       // figure out if local or lateral
-      if(ex.requiredService == null){
+      if(ex.requiredService == null || ex.requiredService.isEmpty()){
         isLocal = true;
       }
       else{
@@ -481,7 +450,7 @@ public final class IntrusionChainFinder {
       }
 
       // lateral needs to have reequired service
-      if(!isLocal && ex.requiredService == null){
+      if(!isLocal && (ex.requiredService == null || ex.requiredService.isEmpty())){
         return false;
       }
 
@@ -493,7 +462,7 @@ public final class IntrusionChainFinder {
 
       // cred tag requirement
       if(!has_cred_with_tag(inventory, ex.requiredCredTag)){
-        System.out.println("missing required cred tag");
+        //System.out.println("missing required cred tag");
         return false;
       }
 
@@ -501,6 +470,9 @@ public final class IntrusionChainFinder {
       if(!isLocal){
         Route r = find_route_allowing(from, to, ex.requiredService);
         if(r == null){
+          return false;
+        }
+        if(to.services == null || !to.services.contains(ex.requiredService)){
           return false;
         }
       }
@@ -578,9 +550,9 @@ public final class IntrusionChainFinder {
         boolean added = set.add(current);
         rec.onceAdded = added;
       }
-      else{
-        System.out.println("Unlimited reuse - nothing to worry about here.");
-      }
+      //else{
+        //System.out.println("Unlimited reuse - nothing to worry about here.");
+      //}
     }
 
     // priviledge gain stuff
