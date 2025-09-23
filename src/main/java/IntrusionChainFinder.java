@@ -409,7 +409,7 @@ public final class IntrusionChainFinder {
   // find a route from and to that allows the svc service
   private static Route find_route_allowing(SystemInfo from, SystemInfo to, String svc){
     // simpler version than I had before
-    if(from.isEmpty() || from == null || to.isEmpty() || to == null || svc.isEmpty() || svc == null){
+    if(from == null || to == null || svc == null){
       return null;
     }
     for(Route r: from.routes){
